@@ -1,0 +1,11 @@
+.git
+.github
+.idea
+.vscode
+target
+*.iml
+*.log
+.DS_Store
+sql
+requests.http
+README.md

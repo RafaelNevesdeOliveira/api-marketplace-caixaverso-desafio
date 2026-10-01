@@ -75,3 +75,37 @@ Todas as outras rotas exigem `Authorization: Bearer <token>`.
 8. Execução dos requests e conferência das tabelas.
 
 O documento de desafio na pasta superior descreve propriedades, regras, rotas, divisão do grupo e definição de pronto.
+
+## Pipeline, imagem e deploy
+
+O workflow `.github/workflows/ci-image-deploy.yml` possui dois comportamentos:
+
+- `develop`: executa compilação e testes, mas não publica imagem e não realiza deploy;
+- `main`: executa compilação e testes, publica a imagem no GitHub Container Registry e atualiza o ambiente `atual`.
+
+A imagem recebe as tags:
+
+```text
+ghcr.io/<proprietario>/<repositorio>:latest
+ghcr.io/<proprietario>/<repositorio>:main
+ghcr.io/<proprietario>/<repositorio>:sha-<commit>
+```
+
+### Configuração única no GitHub
+
+1. Em **Settings → Environments**, crie o environment `atual`.
+2. Dentro dele, cadastre o secret `DEPLOY_HOOK_URL` com o webhook do ambiente atual.
+3. Garanta que o ambiente esteja configurado para utilizar a imagem `ghcr.io/<proprietario>/<repositorio>:latest`.
+4. Em **Settings → Actions → General**, mantenha a permissão de escrita para packages habilitada.
+
+Depois disso, cada push ou merge na `main` publica a imagem e chama o webhook automaticamente. O corpo enviado ao webhook contém:
+
+```json
+{
+  "image": "ghcr.io/proprietario/repositorio",
+  "digest": "sha256:...",
+  "tag": "latest"
+}
+```
+
+O deploy não é executado na `develop`. Essa branch serve apenas para integração e validação do código.
